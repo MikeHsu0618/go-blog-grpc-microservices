@@ -1,0 +1,79 @@
+blog:
+  server:
+    name: "blog"
+    host: "localhost"
+    grpc:
+      port: ":50050"
+    http:
+      port: ":8050"
+    metrics:
+      port: ":9050"
+user:
+  db:
+    host: 'localhost'
+    port: ':3306'
+    user: 'root'
+    password: ''
+    name: 'users'
+  server:
+    name: 'user'
+    host: 'localhost'
+    grpc:
+      port: ':50051'
+    http:
+      port: ':8051'
+    metrics:
+      port: ':9051'
+post:
+  db:
+    host: 'localhost'
+    port: ':3306'
+    user: 'root'
+    password: ''
+    name: 'posts'
+  server:
+    name: 'post'
+    host: 'localhost'
+    grpc:
+      port: ':50052'
+    http:
+      port: ':8052'
+    metrics:
+      port: ':9052'
+comment:
+  db:
+    host: 'localhost'
+    port: ':3306'
+    user: 'root'
+    password: ''
+    name: 'comments'
+  server:
+    name: 'comment'
+    host: 'localhost'
+    grpc:
+      port: ':50053'
+    http:
+      port: ':8053'
+    metrics:
+      port: ':9053'
+auth:
+  server:
+    name: 'auth'
+    host: 'localhost'
+    grpc:
+      port: ':50054'
+    http:
+      port: ':8054'
+    metrics:
+      port: ':9054'
+dtm:
+  server:
+    name: 'dtm'
+    host: 'localhost'
+    grpc:
+      port: ':36790'
+    http:
+      port: ':36789'
+jwt:
+  secret: 'secret'
+  expires: 36000
