@@ -11,10 +11,10 @@ blog:
 user:
   db:
     host: 'localhost'
-    port: ':3306'
-    user: 'root'
-    password: ''
-    name: 'users'
+    port: '5432'
+    user: 'postgres'
+    password: 'postgres'
+    name: 'postgres'
   server:
     name: 'user'
     host: 'localhost'
@@ -27,10 +27,10 @@ user:
 post:
   db:
     host: 'localhost'
-    port: ':3306'
-    user: 'root'
-    password: ''
-    name: 'posts'
+    port: '5432'
+    user: 'postgres'
+    password: 'postgres'
+    name: 'postgres'
   server:
     name: 'post'
     host: 'localhost'
@@ -43,10 +43,10 @@ post:
 comment:
   db:
     host: 'localhost'
-    port: ':3306'
-    user: 'root'
-    password: ''
-    name: 'comments'
+    port: '5432'
+    user: 'postgres'
+    password: 'postgres'
+    name: 'postgres'
   server:
     name: 'comment'
     host: 'localhost'

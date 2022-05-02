@@ -12,6 +12,26 @@ protoc:
 		$$file; \
 	done
 
+.PHONY: migrate-up
+migrate-up:
+	migrate -path ./migrations/user -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
+	migrate -path ./migrations/post -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
+	migrate -path ./migrations/comment -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose up
+
+.PHONY: migrate-down
+migrate-down:
+	migrate -path ./migrations/user -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose down --all
+	migrate -path ./migrations/post -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose down --all
+	migrate -path ./migrations/comment -database "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" -verbose down --all
+
 .PHONY: wire
 wire:
 	wire ./...
+
+.PHONY: auth-server
+auth-server:
+	go run ./cmd/auth/
+
+.PHONY: user-server
+user-server:
+	go run ./cmd/user/

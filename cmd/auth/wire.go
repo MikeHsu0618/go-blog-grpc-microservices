@@ -17,5 +17,5 @@ func InitServer(logger *log.Logger, conf *config.Config) (v1.AuthServiceServer, 
 		jwt.NewManager,
 		auth.NewServer,
 	)
-	return auth.Server{}, nil
+	return &auth.Server{}, nil
 }

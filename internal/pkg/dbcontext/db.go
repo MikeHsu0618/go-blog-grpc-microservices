@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"blog-grpc-microservices/internal/pkg/config"
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -13,9 +13,9 @@ type DB struct {
 }
 
 func NewDB(dsn string) (*DB, error) {
-	params := "?charset=utf8mb4&parseTime=True&loc=Local"
+	params := " sslmode=disable TimeZone=Asia/Taipei"
 	dsn = dsn + params
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
@@ -23,13 +23,22 @@ func NewDB(dsn string) (*DB, error) {
 }
 
 func NewUserDB(conf *config.Config) (*DB, error) {
+	// dsn := fmt.Sprintf(
+	// 	"%s:%s@tcp(%s%s)/%s",
+	// 	conf.User.DB.User,
+	// 	conf.User.DB.Password,
+	// 	conf.User.DB.Host,
+	// 	conf.User.DB.Port,
+	// 	conf.User.DB.Name,
+	// )
+
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s%s)/%s",
+		"host=%s user=%s password=%s dbname=%s port=%v",
+		conf.User.DB.Host,
 		conf.User.DB.User,
 		conf.User.DB.Password,
-		conf.User.DB.Host,
-		conf.User.DB.Port,
 		conf.User.DB.Name,
+		conf.User.DB.Port,
 	)
 	return NewDB(dsn)
 }
