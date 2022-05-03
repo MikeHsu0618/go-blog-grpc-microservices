@@ -39,3 +39,7 @@ user-server:
 .PHONY: post-server
 post-server:
 	go run ./cmd/post/
+
+.PHONY: comment-server
+comment-server:
+	go run ./cmd/comment/

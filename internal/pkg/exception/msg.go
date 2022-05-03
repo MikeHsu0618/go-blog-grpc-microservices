@@ -5,6 +5,7 @@ type Base struct {
 	Auth         AuthMessage
 	User         UserMessage
 	Post         PostMessage
+	Comment      CommentMessage
 }
 
 type AuthMessage struct {
@@ -31,6 +32,15 @@ type PostMessage struct {
 	ListPostFail    string
 }
 
+type CommentMessage struct {
+	GetCommentByIDFail    string
+	ListCommentFail       string
+	DeleteCommentFail     string
+	UpdateCommentFail     string
+	CreateCommentFail     string
+	GetCommentByPostDFail string
+}
+
 var Msg = Base{
 	InvalidToken: "invalid token",
 	Auth: AuthMessage{
@@ -53,5 +63,13 @@ var Msg = Base{
 		UpdatePostFail:  "update post fail: &v",
 		DeletePostFail:  "delete post fail: &v",
 		ListPostFail:    "list post fail: &v",
+	},
+	Comment: CommentMessage{
+		GetCommentByIDFail:    "get comment by id fail: %v",
+		GetCommentByPostDFail: "get comment by post id fail: %v",
+		CreateCommentFail:     "create comment fail: &v",
+		UpdateCommentFail:     "update comment fail: &v",
+		DeleteCommentFail:     "delete comment fail: &v",
+		ListCommentFail:       "list comment fail: &v",
 	},
 }

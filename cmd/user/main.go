@@ -1,19 +1,14 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
 
 	v1 "blog-grpc-microservices/api/protobuf/user/v1"
 	"blog-grpc-microservices/internal/pkg/config"
 	"blog-grpc-microservices/internal/pkg/log"
+	"blog-grpc-microservices/internal/pkg/shutdown"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
@@ -81,18 +76,5 @@ func main() {
 		}
 	}()
 
-	// todo Start HTTP server
-
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	<-ch
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	grpcServer.GracefulStop()
-	if err = metricsServer.Shutdown(ctx); err != nil {
-		logger.Fatal(err)
-	}
-	<-ctx.Done()
-	close(ch)
-	fmt.Println("Graceful Shutdown end")
+	shutdown.GracefulShutDown(grpcServer, metricsServer, logger)
 }

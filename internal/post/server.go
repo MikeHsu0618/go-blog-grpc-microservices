@@ -28,7 +28,7 @@ type Server struct {
 func (s *Server) GetPost(ctx context.Context, in *v1.GetPostRequest) (*v1.GetPostResponse, error) {
 	post, err := s.repo.Get(ctx, in.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 	return &v1.GetPostResponse{
 		Post: entityToProtobuf(post),
@@ -44,7 +44,7 @@ func (s *Server) CreatePost(ctx context.Context, in *v1.CreatePostRequest) (*v1.
 	}
 	err := s.repo.Create(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, exception.Msg.Post.CreatePostFail)
+		return nil, status.Errorf(codes.Internal, exception.Msg.Post.CreatePostFail, err)
 	}
 
 	return &v1.CreatePostResponse{
@@ -55,7 +55,7 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.UpdatePostRequest) (*v1.
 	postID := in.GetPost().GetId()
 	post, err := s.repo.Get(ctx, postID)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 
 	if in.GetPost().GetTitle() != "" {
@@ -70,7 +70,7 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.UpdatePostRequest) (*v1.
 
 	err = s.repo.Update(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.UpdatePostResponse{
@@ -81,12 +81,12 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.UpdatePostRequest) (*v1.
 func (s *Server) DeletePost(ctx context.Context, in *v1.DeletePostRequest) (*v1.DeletePostResponse, error) {
 	post, err := s.repo.Get(ctx, in.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 
 	err = s.repo.Delete(ctx, post.ID)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.DeletePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.DeletePostFail, err)
 	}
 
 	return &v1.DeletePostResponse{
@@ -97,14 +97,14 @@ func (s *Server) DeletePost(ctx context.Context, in *v1.DeletePostRequest) (*v1.
 func (s *Server) DeletePostCompensate(ctx context.Context, in *v1.DeletePostRequest) (*v1.DeletePostResponse, error) {
 	post, err := s.repo.GetWithUnscoped(ctx, in.GetId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 
 	post.DeletedAt = gorm.DeletedAt{}
 
 	err = s.repo.UpdateWithUnscoped(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.DeletePostResponse{
@@ -114,7 +114,7 @@ func (s *Server) DeletePostCompensate(ctx context.Context, in *v1.DeletePostRequ
 func (s *Server) ListPosts(ctx context.Context, in *v1.ListPostsRequest) (*v1.ListPostsResponse, error) {
 	list, err := s.repo.List(ctx, int(in.GetOffset()), int(in.GetLimit()))
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.ListPostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.ListPostFail, err)
 	}
 
 	var posts []*v1.Post
@@ -134,12 +134,12 @@ func (s *Server) IncrementCommentsCount(ctx context.Context, in *v1.IncrementCom
 	id := in.GetId()
 	post, err := s.repo.Get(ctx, id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 	post.CommentsCount++
 	err = s.repo.Update(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.IncrementCommentsCountResponse{
@@ -150,12 +150,12 @@ func (s *Server) IncrementCommentsCountCompensate(ctx context.Context, in *v1.In
 	id := in.GetId()
 	post, err := s.repo.Get(ctx, id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 	post.CommentsCount--
 	err = s.repo.Update(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.IncrementCommentsCountResponse{
@@ -167,12 +167,12 @@ func (s *Server) DecrementCommentsCount(ctx context.Context, in *v1.DecrementCom
 	id := in.GetId()
 	post, err := s.repo.Get(ctx, id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 	post.CommentsCount--
 	err = s.repo.Update(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.DecrementCommentsCountResponse{
@@ -184,12 +184,12 @@ func (s *Server) DecrementCommentsCountCompensate(ctx context.Context, in *v1.De
 	id := in.GetId()
 	post, err := s.repo.Get(ctx, id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.GetPostByIDFail, err)
 	}
 	post.CommentsCount++
 	err = s.repo.Update(ctx, post)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail)
+		return nil, status.Errorf(codes.NotFound, exception.Msg.Post.UpdatePostFail, err)
 	}
 
 	return &v1.DecrementCommentsCountResponse{
