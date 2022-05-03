@@ -14,7 +14,7 @@ user:
     port: '5432'
     user: 'postgres'
     password: 'postgres'
-    name: 'postgres'
+    name: 'users'
   server:
     name: 'user'
     host: 'localhost'
@@ -30,7 +30,7 @@ post:
     port: '5432'
     user: 'postgres'
     password: 'postgres'
-    name: 'postgres'
+    name: 'posts'
   server:
     name: 'post'
     host: 'localhost'
@@ -46,7 +46,7 @@ comment:
     port: '5432'
     user: 'postgres'
     password: 'postgres'
-    name: 'postgres'
+    name: 'comments'
   server:
     name: 'comment'
     host: 'localhost'

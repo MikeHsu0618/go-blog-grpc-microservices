@@ -4,6 +4,7 @@ type Base struct {
 	InvalidToken string
 	Auth         AuthMessage
 	User         UserMessage
+	Post         PostMessage
 }
 
 type AuthMessage struct {
@@ -22,6 +23,14 @@ type UserMessage struct {
 	DeleteUserFail        string
 }
 
+type PostMessage struct {
+	GetPostByIDFail string
+	CreatePostFail  string
+	UpdatePostFail  string
+	DeletePostFail  string
+	ListPostFail    string
+}
+
 var Msg = Base{
 	InvalidToken: "invalid token",
 	Auth: AuthMessage{
@@ -37,5 +46,12 @@ var Msg = Base{
 		DeleteUserFail:        "delete user fail: &v",
 		IncorrectPassword:     "incorrect password",
 		GeneratePasswordFail:  "generate bcrypt password fail: %v",
+	},
+	Post: PostMessage{
+		GetPostByIDFail: "get post by id fail: %v",
+		CreatePostFail:  "create post fail: &v",
+		UpdatePostFail:  "update post fail: &v",
+		DeletePostFail:  "delete post fail: &v",
+		ListPostFail:    "list post fail: &v",
 	},
 }

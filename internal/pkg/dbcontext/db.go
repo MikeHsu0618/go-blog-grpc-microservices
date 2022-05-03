@@ -23,15 +23,6 @@ func NewDB(dsn string) (*DB, error) {
 }
 
 func NewUserDB(conf *config.Config) (*DB, error) {
-	// dsn := fmt.Sprintf(
-	// 	"%s:%s@tcp(%s%s)/%s",
-	// 	conf.User.DB.User,
-	// 	conf.User.DB.Password,
-	// 	conf.User.DB.Host,
-	// 	conf.User.DB.Port,
-	// 	conf.User.DB.Name,
-	// )
-
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%v",
 		conf.User.DB.Host,
@@ -45,24 +36,24 @@ func NewUserDB(conf *config.Config) (*DB, error) {
 
 func NewPostDB(conf *config.Config) (*DB, error) {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s%s)/%s",
+		"host=%s user=%s password=%s dbname=%s port=%v",
+		conf.Post.DB.Host,
 		conf.Post.DB.User,
 		conf.Post.DB.Password,
-		conf.Post.DB.Host,
-		conf.Post.DB.Port,
 		conf.Post.DB.Name,
+		conf.Post.DB.Port,
 	)
 	return NewDB(dsn)
 }
 
 func NewCommentDB(conf *config.Config) (*DB, error) {
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s%s)/%s",
+		"host=%s user=%s password=%s dbname=%s port=%v",
+		conf.Comment.DB.Host,
 		conf.Comment.DB.User,
 		conf.Comment.DB.Password,
-		conf.Comment.DB.Host,
-		conf.Comment.DB.Port,
 		conf.Comment.DB.Name,
+		conf.Comment.DB.Port,
 	)
 	return NewDB(dsn)
 }

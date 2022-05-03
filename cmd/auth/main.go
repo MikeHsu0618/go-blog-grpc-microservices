@@ -57,7 +57,7 @@ func main() {
 		logger.Fatalf("failed to listen: %v", err)
 	}
 
-	// Start gRPC server
+	// Start grpc server
 	logger.Infof("gPRC Listening on port %s", conf.Auth.Server.GRPC.Port)
 	go func() {
 		if err = grpcServer.Serve(lis); err != nil {

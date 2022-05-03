@@ -23,7 +23,7 @@ type Server struct {
 	jwtManager *jwt.Manager
 }
 
-func (s Server) GenerateToken(ctx context.Context, req *v1.GenerateTokenRequest) (*v1.GenerateTokenResponse, error) {
+func (s *Server) GenerateToken(ctx context.Context, req *v1.GenerateTokenRequest) (*v1.GenerateTokenResponse, error) {
 	token, err := s.jwtManager.Generate(req.GetUserId())
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to generate token")
@@ -33,7 +33,7 @@ func (s Server) GenerateToken(ctx context.Context, req *v1.GenerateTokenRequest)
 	}, nil
 }
 
-func (s Server) ValidateToken(ctx context.Context, req *v1.ValidateTokenRequest) (*v1.ValidateTokenResponse, error) {
+func (s *Server) ValidateToken(ctx context.Context, req *v1.ValidateTokenRequest) (*v1.ValidateTokenResponse, error) {
 	claims, err := s.jwtManager.Validate(req.GetToken())
 	if claims.UserId == 0 || err != nil {
 		return nil, status.Error(codes.Unauthenticated, "invalid token")
@@ -44,7 +44,7 @@ func (s Server) ValidateToken(ctx context.Context, req *v1.ValidateTokenRequest)
 	}, nil
 }
 
-func (s Server) RefreshToken(ctx context.Context, req *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
+func (s *Server) RefreshToken(ctx context.Context, req *v1.RefreshTokenRequest) (*v1.RefreshTokenResponse, error) {
 	claims, err := s.jwtManager.Validate(req.GetToken())
 	if err != nil {
 		return nil, status.Error(codes.Unauthenticated, "invalid token")
