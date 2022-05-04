@@ -36,19 +36,19 @@ func (r *repository) ListUsersByIDs(ctx context.Context, ids []uint64) ([]*User,
 }
 
 func (r *repository) Get(ctx context.Context, id uint64) (*User, error) {
-	var user *User
+	user := &User{}
 	err := r.db.First(&user, id).Error
 	return user, err
 }
 
 func (r *repository) GetByEmail(ctx context.Context, email string) (*User, error) {
-	var user *User
+	user := &User{}
 	err := r.db.Where("email = ?", email).First(user).Error
 	return user, err
 }
 
 func (r *repository) GetByUsername(ctx context.Context, username string) (*User, error) {
-	var user *User
+	user := &User{}
 	err := r.db.Where("username = ?", username).First(user).Error
 	return user, err
 }

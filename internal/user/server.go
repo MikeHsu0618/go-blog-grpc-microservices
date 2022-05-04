@@ -106,6 +106,9 @@ func (s *Server) CreateUser(ctx context.Context, in *v1.CreateUserRequest) (*v1.
 	}
 
 	err = s.repo.Create(ctx, user)
+
+	// TODO 判端 AlreadyExist
+
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, exception.Msg.User.CreateUserFail, err)
 	}

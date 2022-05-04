@@ -1,0 +1,203 @@
+syntax = "proto3";
+
+option go_package = "blog-grpc-microservicesBLog_/alo/protobuf/Blog_blog/v1";
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service BlogService {
+  rpc SignUp(Blog_SignUpRequest) returns (Blog_SignUpResponse) {
+    option (google.api.http) = {
+      post : "/api/blog/v1/sign-up",
+      body : "*"
+    };
+  }
+  rpc SignIn(Blog_SignInRequest) returns (Blog_SignInResponse) {
+    option (google.api.http) = {
+      post : "/api/blog/v1/sign-in",
+      body : "*"
+
+    };
+  }
+  rpc CreatePost(Blog_CreatePostRequest) returns (Blog_CreatePostResponse) {
+    option (google.api.http) = {
+      post: "/api/blog/v1/posts"
+      body: "*"
+    };
+  }
+  rpc GetPost (Blog_GetPostRequest) returns (Blog_GetPostResponse) {
+    option (google.api.http) = {
+      get: "/api/blog/v1/posts/{id}"
+    };
+  }
+  rpc ListPosts (Blog_ListPostsRequest) returns (Blog_ListPostsResponse) {
+    option (google.api.http) = {
+      get: "/api/blog/v1/posts"
+    };
+  }
+  rpc UpdatePost (Blog_UpdatePostRequest) returns (Blog_UpdatePostResponse) {
+    option (google.api.http) = {
+      put: "/api/blog/v1/posts/{post.id}"
+      body: "*"
+    };
+  }
+  rpc DeletePost (Blog_DeletePostRequest) returns (Blog_DeletePostResponse) {
+    option (google.api.http) = {
+      delete: "/api/blog/v1/posts/{id}"
+    };
+  }
+  rpc CreateComment (Blog_CreateCommentRequest) returns (Blog_CreateCommentResponse) {
+    option (google.api.http) = {
+      post: "/api/blog/v1/comments"
+      body: "*"
+    };
+  }
+  rpc DeleteComment (Blog_DeleteCommentRequest) returns (Blog_DeleteCommentResponse) {
+    option (google.api.http) = {
+      delete: "/api/blog/v1/comments/{id}"
+    };
+  }
+  rpc UpdateComment (Blog_UpdateCommentRequest) returns (Blog_UpdateCommentResponse) {
+    option (google.api.http) = {
+      put: "/api/blog/v1/comments/{comment.id}"
+      body: "*"
+    };
+  }
+  rpc ListCommentsByPostID (Blog_ListCommentsByPostIDRequest) returns (Blog_ListCommentsByPostIDResponse) {
+    option (google.api.http) = {
+      get: "/api/blog/v1/comments"
+    };
+  }
+}
+
+message Blog_User {
+  uint64 id = 1;
+  string username = 2;
+  string avatar = 3;
+}
+
+message Blog_Post {
+  uint64 id = 1;
+  string title = 2 [(validate.rules).string = {min_len: 1, max_len: 140}];
+  string content = 3 [(validate.rules).string = {min_len: 1, max_len: 3000}];
+  uint64 user_id = 4;
+  uint32 comments_count = 5;
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  Blog_User user = 8;
+}
+
+message Blog_Comment {
+  uint64 id = 1;
+  string content = 2 [(validate.rules).string = {min_len: 1, max_len: 140}];
+  uint64 post_id = 3;
+  uint64 user_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  Blog_Post post = 7;
+  Blog_User user = 8;
+}
+
+message Blog_SignUpRequest {
+  oneof request {
+    option (validate.required) = true;
+    string username = 1 [(validate.rules).string = {min_len: 1, max_len: 30}];
+    string email = 2 [(validate.rules).string.email = true];
+  }
+  string password = 3;
+}
+
+message Blog_SignUpResponse {
+  string token = 1;
+}
+
+message Blog_SignInRequest {
+  oneof request {
+    option (validate.required) = true;
+    string username = 1 [(validate.rules).string = {min_len: 1, max_len: 30}];
+    string email = 2 [(validate.rules).string.email = true];
+  }
+  string password = 3 [(validate.rules).string = {min_len: 1, max_len: 30}];
+}
+
+message Blog_SignInResponse {
+  string token = 1;
+}
+
+message Blog_CreatePostRequest {
+  Blog_Post post = 1;
+}
+
+message Blog_CreatePostResponse {
+  Blog_Post post = 1;
+}
+
+message Blog_DeletePostRequest {
+  uint64 id = 1;
+}
+
+message Blog_DeletePostResponse {
+  bool success = 1;
+}
+
+message Blog_CreateCommentRequest {
+  Blog_Comment comment = 1;
+}
+
+message Blog_CreateCommentResponse {
+  Blog_Comment comment = 1;
+}
+
+message Blog_UpdateCommentRequest {
+  Blog_Comment comment = 1;
+}
+
+message Blog_UpdateCommentResponse {
+  bool success = 1;
+}
+
+message Blog_DeleteCommentRequest {
+  uint64 id = 1;
+}
+
+message Blog_DeleteCommentResponse {
+  bool success = 1;
+}
+
+message Blog_GetPostRequest {
+  uint64 id = 1;
+}
+
+message Blog_GetPostResponse {
+  Blog_Post post = 1;
+}
+
+message Blog_UpdatePostRequest {
+  Blog_Post post = 1;
+}
+
+message Blog_UpdatePostResponse {
+  bool success = 1;
+}
+
+message Blog_ListPostsRequest {
+  uint32 offset = 1;
+  uint32 limit = 2;
+}
+
+message Blog_ListPostsResponse {
+  repeated Blog_Post posts = 1;
+  uint64 total = 2;
+}
+
+message Blog_ListCommentsByPostIDRequest {
+  uint64 post_id = 1;
+  uint32 offset = 2;
+  uint64 total = 3;
+}
+
+message Blog_ListCommentsByPostIDResponse {
+  repeated Blog_Comment comments = 1;
+  uint64 total = 2;
+}
