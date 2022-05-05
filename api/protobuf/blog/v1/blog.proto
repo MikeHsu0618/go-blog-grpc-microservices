@@ -194,7 +194,7 @@ message Blog_ListPostsResponse {
 message Blog_ListCommentsByPostIDRequest {
   uint64 post_id = 1;
   uint32 offset = 2;
-  uint64 total = 3;
+  uint64 limit = 3;
 }
 
 message Blog_ListCommentsByPostIDResponse {

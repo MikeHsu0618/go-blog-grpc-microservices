@@ -43,3 +43,7 @@ post-server:
 .PHONY: comment-server
 comment-server:
 	go run ./cmd/comment/
+
+.PHONY: blog-server
+blog-server:
+	go run ./cmd/blog/

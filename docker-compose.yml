@@ -10,3 +10,37 @@ services:
       - POSTGRES_PASSWORD=postgres
       - PGDATA=/var/lib/postgresql/data/pgdata
     restart: always
+    networks:
+      - backend
+#
+#  dtm:
+#    image: yedf/dtm
+#    entrypoint:
+#      - "/app/dtm/dtm"
+#      - "-c=/app/dtm/configs/config.yaml"
+#    volumes:
+#      - ./dtm/config.yml:/app/dtm/configs/config.yaml # 将 dtm 配置文件挂载到容器里
+#    ports:
+#      - "${DTM_HTTP_PORT}:36789"
+#      - "${DTM_GRPC_PORT}:36790"
+#    networks:
+#      - backend
+#    restart: always
+
+  dtm:
+    image: yedf/dtm
+    environment:
+      - STORE_DRIVER=postgres
+      - STORE_HOST=db
+      - STORE_USER=postgres
+      - STORE_PASSWORD=postgres
+      - STORE_PORT=5432
+    ports:
+      - '36789:36789'
+      - '36790:36790'
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

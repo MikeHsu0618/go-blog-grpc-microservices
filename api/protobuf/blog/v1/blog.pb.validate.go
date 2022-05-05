@@ -639,6 +639,16 @@ func (m *Blog_SignUpRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
+	default:
+		err := Blog_SignUpRequestValidationError{
+			field:  "Request",
+			reason: "value is required",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+
 	}
 
 	if len(errors) > 0 {
@@ -3099,7 +3109,7 @@ func (m *Blog_ListCommentsByPostIDRequest) validate(all bool) error {
 
 	// no validation rules for Offset
 
-	// no validation rules for Total
+	// no validation rules for Limit
 
 	if len(errors) > 0 {
 		return Blog_ListCommentsByPostIDRequestMultiError(errors)

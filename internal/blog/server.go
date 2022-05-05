@@ -12,6 +12,7 @@ import (
 	"blog-grpc-microservices/internal/pkg/exception"
 	"blog-grpc-microservices/internal/pkg/interceptor"
 	"blog-grpc-microservices/internal/pkg/log"
+	"github.com/dtm-labs/dtm/dtmgrpc"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -93,7 +94,7 @@ func (s *Server) SignUp(ctx context.Context, in *v1.Blog_SignUpRequest) (*v1.Blo
 	})
 	if err != nil {
 		s.logger.Error(err)
-		return nil, status.Error(codes.Internal, exception.Msg.Blog.GenerateTokenFail)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &v1.Blog_SignUpResponse{
@@ -113,7 +114,7 @@ func (s *Server) SignIn(ctx context.Context, in *v1.Blog_SignInRequest) (*v1.Blo
 		})
 		if err != nil {
 			s.logger.Error(err)
-			return nil, status.Errorf(codes.Internal, exception.Msg.Blog.GetUserByEmailFail)
+			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 
 		userID = resp.GetUser().GetId()
@@ -124,7 +125,7 @@ func (s *Server) SignIn(ctx context.Context, in *v1.Blog_SignInRequest) (*v1.Blo
 		})
 		if err != nil {
 			s.logger.Error(err)
-			return nil, status.Errorf(codes.Internal, exception.Msg.Blog.GetUserByUsernameFail)
+			return nil, status.Errorf(codes.Internal, err.Error())
 		}
 		userID = resp.GetUser().GetId()
 	}
@@ -134,7 +135,7 @@ func (s *Server) SignIn(ctx context.Context, in *v1.Blog_SignInRequest) (*v1.Blo
 	})
 	if err != nil {
 		s.logger.Error(err)
-		return nil, status.Error(codes.Internal, exception.Msg.Blog.GenerateTokenFail)
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &v1.Blog_SignInResponse{
@@ -148,7 +149,7 @@ func (s *Server) CreatePost(ctx context.Context, in *v1.Blog_CreatePostRequest) 
 	}
 	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.GetUserByIDFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	postResp, err := s.postClient.CreatePost(ctx, &postv1.CreatePostRequest{Post: &postv1.Post{
 		Uuid:    uuid.New().String(),
@@ -157,7 +158,7 @@ func (s *Server) CreatePost(ctx context.Context, in *v1.Blog_CreatePostRequest) 
 		UserId:  userResp.GetUser().GetId(),
 	}})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.CreatePostFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &v1.Blog_CreatePostResponse{
@@ -180,11 +181,11 @@ func (s *Server) CreatePost(ctx context.Context, in *v1.Blog_CreatePostRequest) 
 func (s *Server) GetPost(ctx context.Context, in *v1.Blog_GetPostRequest) (*v1.Blog_GetPostResponse, error) {
 	postResp, err := s.postClient.GetPost(ctx, &postv1.GetPostRequest{Id: in.GetId()})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	postuserResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: postResp.GetPost().UserId})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.GetUserByIDFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &v1.Blog_GetPostResponse{Post: &v1.Blog_Post{
@@ -208,7 +209,7 @@ func (s *Server) ListPosts(ctx context.Context, in *v1.Blog_ListPostsRequest) (*
 		Offset: int32(in.GetOffset()),
 	})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, exception.Msg.Blog.ListPostFail)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
 	var posts []*v1.Blog_Post
@@ -220,10 +221,10 @@ func (s *Server) ListPosts(ctx context.Context, in *v1.Blog_ListPostsRequest) (*
 
 	postUserResp, err := s.userClient.ListUsersByIDs(ctx, &userv1.ListUsersByIDsRequest{Ids: postUserIDs})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, exception.Msg.Blog.GetUserByIDFail)
+		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	for _, post := range posts {
+	for _, post := range postResp.GetPosts() {
 		for _, postUser := range postUserResp.GetUsers() {
 			if post.GetUserId() == postUser.GetId() {
 				posts = append(posts, &v1.Blog_Post{
@@ -256,15 +257,15 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.Blog_UpdatePostRequest) 
 	}
 	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.GetUserByIDFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	postResp, err := s.postClient.GetPost(ctx, &postv1.GetPostRequest{Id: in.GetPost().GetId()})
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.GetPostByIDFail)
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 	// 只有自己可以修改自己的文章
 	if userResp.GetUser().GetId() != postResp.GetPost().GetUserId() {
-		return nil, status.Errorf(codes.Unauthenticated, exception.Msg.Blog.UserNotAuthenticated)
+		return nil, status.Errorf(codes.Unauthenticated, err.Error())
 	}
 
 	// 更新文章
@@ -277,9 +278,9 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.Blog_UpdatePostRequest) 
 	if in.GetPost().GetContent() != "" {
 		updatedPost.Content = in.GetPost().GetContent()
 	}
-	udpatePostResp, err := s.postClient.UpdatePost(ctx, &postv1.UpdatePostRequest{Post: updatedPost})
-	if err != nil || udpatePostResp.GetSuccess() {
-		return nil, status.Errorf(codes.NotFound, exception.Msg.Blog.UpdatePostFail)
+	updatePostResp, err := s.postClient.UpdatePost(ctx, &postv1.UpdatePostRequest{Post: updatedPost})
+	if err != nil || !updatePostResp.GetSuccess() {
+		return nil, status.Errorf(codes.NotFound, err.Error())
 	}
 
 	return &v1.Blog_UpdatePostResponse{
@@ -287,17 +288,271 @@ func (s *Server) UpdatePost(ctx context.Context, in *v1.Blog_UpdatePostRequest) 
 	}, nil
 }
 func (s *Server) DeletePost(ctx context.Context, in *v1.Blog_DeletePostRequest) (*v1.Blog_DeletePostResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeletePost not implemented")
+	userID, ok := ctx.Value(interceptor.ContextKeyID).(uint64)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, exception.Msg.Blog.UserNotAuthenticated)
+	}
+	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	postResp, err := s.postClient.GetPost(ctx, &postv1.GetPostRequest{Id: in.GetId()})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+
+	// 只能刪除自己的文章
+	if userResp.GetUser().GetId() != postResp.GetPost().GetUserId() {
+		return nil, status.Error(codes.PermissionDenied, exception.Msg.Blog.UserNotAuthenticated)
+	}
+
+	// 分佈式事務(Saga 模式)
+	dtmGRPCServerAddr := s.conf.DTM.Server.Host + s.conf.DTM.Server.GRPC.Port
+	gid := dtmgrpc.MustGenGid(dtmGRPCServerAddr)
+	s.logger.Info("gid:", gid)
+	saga := dtmgrpc.NewSagaGrpc(dtmGRPCServerAddr, gid).Add(
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/DeletePost",
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/DeletePostCompensate",
+		&postv1.DeletePostRequest{
+			Id: in.GetId(),
+		},
+	).Add(
+		s.conf.Comment.Server.Host+s.conf.Comment.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/DeleteCommentsByPostID",
+		s.conf.Comment.Server.Host+s.conf.Comment.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/DeleteCommentsByPostIDCompensate",
+		&commentv1.DeleteCommentsByPostIDRequest{
+			PostId: in.GetId(),
+		},
+	)
+	saga.WaitResult = true
+	err = saga.Submit()
+	if err != nil {
+		s.logger.Error("saga submit error:", err)
+		return nil, status.Error(codes.Internal, "saga submit failed")
+	}
+
+	return &v1.Blog_DeletePostResponse{
+		Success: true,
+	}, nil
 }
 func (s *Server) CreateComment(ctx context.Context, in *v1.Blog_CreateCommentRequest) (*v1.Blog_CreateCommentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateComment not implemented")
+	userID, ok := ctx.Value(interceptor.ContextKeyID).(uint64)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, exception.Msg.Blog.UserNotAuthenticated)
+	}
+	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	postResp, err := s.postClient.GetPost(ctx, &postv1.GetPostRequest{Id: in.GetComment().GetPostId()})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	comment := &commentv1.Comment{
+		Uuid:    uuid.New().String(),
+		Content: in.GetComment().GetContent(),
+		PostId:  postResp.GetPost().GetId(),
+		UserId:  userResp.GetUser().GetId(),
+	}
+
+	// 分佈式事務(Saga 模式)
+	dtmGRPCServerAddr := s.conf.DTM.Server.Host + s.conf.DTM.Server.GRPC.Port
+	gid := dtmgrpc.MustGenGid(dtmGRPCServerAddr)
+	s.logger.Info("gid:", gid)
+	saga := dtmgrpc.NewSagaGrpc(dtmGRPCServerAddr, gid).Add(
+		s.conf.Comment.Server.Host+s.conf.Comment.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/CreateComment",
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/CreateCommentCompensate",
+		&commentv1.CreateCommentRequest{
+			Comment: comment,
+		},
+	).Add(
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/IncrementCommentsCount",
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/IncrementCommentsCountCompensate",
+		&postv1.IncrementCommentsCountRequest{
+			Id: postResp.GetPost().GetId(),
+		},
+	)
+	saga.WaitResult = true
+	err = saga.Submit()
+	if err != nil {
+		s.logger.Error("saga submit error:", err)
+		return nil, status.Error(codes.Internal, "saga submit failed")
+	}
+	postUserResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{
+		Id: postResp.GetPost().GetUserId(),
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	commentResp, err := s.commentClient.GetCommentByUUID(ctx, &commentv1.GetCommentByUUIDRequest{
+		Uuid: comment.GetUuid(),
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &v1.Blog_CreateCommentResponse{
+		Comment: &v1.Blog_Comment{
+			Id:        commentResp.GetComment().GetId(),
+			Content:   commentResp.GetComment().GetContent(),
+			PostId:    commentResp.GetComment().GetPostId(),
+			UserId:    commentResp.GetComment().GetUserId(),
+			CreatedAt: commentResp.GetComment().GetCreatedAt(),
+			UpdatedAt: commentResp.GetComment().GetUpdatedAt(),
+			Post: &v1.Blog_Post{
+				Id:            postResp.GetPost().GetId(),
+				Title:         postResp.GetPost().GetTitle(),
+				Content:       postResp.GetPost().GetContent(),
+				UserId:        postResp.GetPost().GetUserId(),
+				CommentsCount: postResp.GetPost().GetCommentsCount(),
+				CreatedAt:     postResp.GetPost().GetCreatedAt(),
+				UpdatedAt:     postResp.GetPost().GetUpdatedAt(),
+				User: &v1.Blog_User{
+					Id:       postUserResp.GetUser().GetId(),
+					Username: postUserResp.GetUser().GetUsername(),
+					Avatar:   postUserResp.GetUser().GetAvatar(),
+				},
+			},
+			User: &v1.Blog_User{
+				Id:       userResp.GetUser().GetId(),
+				Username: userResp.GetUser().GetUsername(),
+				Avatar:   userResp.GetUser().GetAvatar(),
+			},
+		},
+	}, nil
 }
 func (s *Server) DeleteComment(ctx context.Context, in *v1.Blog_DeleteCommentRequest) (*v1.Blog_DeleteCommentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteComment not implemented")
+	userID, ok := ctx.Value(interceptor.ContextKeyID).(uint64)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, exception.Msg.Blog.UserNotAuthenticated)
+	}
+	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	commentResp, err := s.commentClient.GetComment(ctx, &commentv1.GetCommentRequest{Id: in.GetId()})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	postResp, err := s.postClient.GetPost(ctx, &postv1.GetPostRequest{
+		Id: commentResp.GetComment().GetPostId(),
+	})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	// 只能更新自己的評論
+	if commentResp.GetComment().GetUserId() != userResp.GetUser().GetId() || userResp.GetUser().GetId() != postResp.GetPost().GetUserId() {
+		return nil, status.Error(codes.PermissionDenied, exception.Msg.Blog.UserNotAuthenticated)
+	}
+
+	// 分佈式(Saga 模式): 刪除評論 and 减少評論數目
+	dtmGRPCServerAddr := s.conf.DTM.Server.Host + s.conf.DTM.Server.GRPC.Port
+	gid := dtmgrpc.MustGenGid(dtmGRPCServerAddr)
+	s.logger.Info("gid:", gid)
+	saga := dtmgrpc.NewSagaGrpc(dtmGRPCServerAddr, gid).Add(
+		s.conf.Comment.Server.Host+s.conf.Comment.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/DeleteComment",
+		s.conf.Comment.Server.Host+s.conf.Comment.Server.GRPC.Port+"/"+commentv1.CommentService_ServiceDesc.ServiceName+"/DeleteCommentCompensate",
+		&commentv1.DeleteCommentRequest{
+			Id: in.GetId(),
+		},
+	).Add(
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/DecrementCommentsCount",
+		s.conf.Post.Server.Host+s.conf.Post.Server.GRPC.Port+"/"+postv1.PostService_ServiceDesc.ServiceName+"/DecrementCommentsCountCompensate",
+		&postv1.DecrementCommentsCountRequest{
+			Id: postResp.GetPost().GetId(),
+		},
+	)
+
+	saga.WaitResult = true
+	err = saga.Submit()
+	if err != nil {
+		return nil, status.Error(codes.Internal, "saga submit failed")
+	}
+
+	return &v1.Blog_DeleteCommentResponse{Success: true}, nil
 }
 func (s *Server) UpdateComment(ctx context.Context, in *v1.Blog_UpdateCommentRequest) (*v1.Blog_UpdateCommentResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateComment not implemented")
+	userID, ok := ctx.Value(interceptor.ContextKeyID).(uint64)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, exception.Msg.Blog.UserNotAuthenticated)
+	}
+	userResp, err := s.userClient.GetUser(ctx, &userv1.GetUserRequest{Id: userID})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	commentResp, err := s.commentClient.GetComment(ctx, &commentv1.GetCommentRequest{Id: in.GetComment().Id})
+	if err != nil {
+		return nil, status.Error(codes.NotFound, err.Error())
+	}
+	// 只能更新自己的評論
+	if commentResp.GetComment().GetUserId() != userResp.GetUser().GetId() {
+		return nil, status.Error(codes.PermissionDenied, "user not authorized")
+	}
+
+	comment := &commentv1.Comment{
+		Id:      in.GetComment().GetId(),
+		Content: in.GetComment().GetContent(),
+	}
+	_, err = s.commentClient.UpdateComment(ctx, &commentv1.UpdateCommentRequest{Comment: comment})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	return &v1.Blog_UpdateCommentResponse{
+		Success: true,
+	}, nil
 }
 func (s *Server) ListCommentsByPostID(ctx context.Context, in *v1.Blog_ListCommentsByPostIDRequest) (*v1.Blog_ListCommentsByPostIDResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListCommentsByPostID not implemented")
+	postID := in.GetPostId()
+	offset := in.GetOffset()
+	limit := in.GetLimit()
+	commentResp, err := s.commentClient.ListCommentsByPostID(ctx, &commentv1.ListCommentsByPostIDRequest{
+		PostId: postID,
+		Limit:  int32(limit),
+		Offset: int32(offset),
+	})
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, exception.Msg.Blog.ListPostFail)
+	}
+	var commentUserIDs []uint64
+	for _, post := range commentResp.GetComments() {
+		commentUserIDs = append(commentUserIDs, post.GetUserId())
+	}
+
+	commentUserResp, err := s.userClient.ListUsersByIDs(ctx, &userv1.ListUsersByIDsRequest{
+		Ids: commentUserIDs,
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	var comments []*v1.Blog_Comment
+	for _, comment := range commentResp.GetComments() {
+		for _, user := range commentUserResp.GetUsers() {
+			if user.GetId() == comment.GetUserId() {
+				comments = append(comments, &v1.Blog_Comment{
+					Id:        comment.GetId(),
+					Content:   comment.GetContent(),
+					PostId:    comment.GetPostId(),
+					UserId:    comment.GetUserId(),
+					CreatedAt: comment.GetCreatedAt(),
+					UpdatedAt: comment.GetUpdatedAt(),
+					User: &v1.Blog_User{
+						Id:       user.GetId(),
+						Username: user.GetUsername(),
+						Avatar:   user.GetAvatar(),
+					},
+				})
+			}
+		}
+	}
+
+	return &v1.Blog_ListCommentsByPostIDResponse{
+		Comments: comments,
+		Total:    commentResp.GetTotal(),
+	}, nil
 }
