@@ -1,7 +1,7 @@
 blog:
   server:
     name: "blog"
-    host: "blog-server"
+    host: "localhost"
     grpc:
       port: ":50050"
     http:
@@ -10,14 +10,14 @@ blog:
       port: ":9050"
 user:
   db:
-    host: 'db'
+    host: 'localhost'
     port: '5432'
     user: 'postgres'
     password: 'postgres'
     name: 'users'
   server:
     name: 'user'
-    host: 'user-server'
+    host: 'localhost'
     grpc:
       port: ':50051'
     http:
@@ -26,14 +26,14 @@ user:
       port: ':9051'
 post:
   db:
-    host: 'db'
+    host: 'localhost'
     port: '5432'
     user: 'postgres'
     password: 'postgres'
     name: 'posts'
   server:
     name: 'post'
-    host: 'post-server'
+    host: 'localhost'
     grpc:
       port: ':50052'
     http:
@@ -42,14 +42,14 @@ post:
       port: ':9052'
 comment:
   db:
-    host: 'db'
+    host: 'localhost'
     port: '5432'
     user: 'postgres'
     password: 'postgres'
     name: 'comments'
   server:
     name: 'comment'
-    host: 'comment-server'
+    host: 'localhost'
     grpc:
       port: ':50053'
     http:
@@ -59,7 +59,7 @@ comment:
 auth:
   server:
     name: 'auth'
-    host: 'auth-server'
+    host: 'localhost'
     grpc:
       port: ':50054'
     http:
@@ -69,7 +69,7 @@ auth:
 dtm:
   server:
     name: 'dtm'
-    host: 'dtm-server'
+    host: 'localhost'
     grpc:
       port: ':36790'
     http:

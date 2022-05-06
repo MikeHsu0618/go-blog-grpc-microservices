@@ -12,6 +12,71 @@ services:
     restart: always
     networks:
       - backend
+
+  blog-server:
+    build:
+      context: ./
+      dockerfile: ./build/docker/blog/Dockerfile
+    ports:
+      - "50050:50050"
+      - "8050:8050"
+      - "9050:9050"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  user-server:
+    build:
+      context: ./
+      dockerfile: ./build/docker/user/Dockerfile
+    ports:
+      - "50051:50051"
+      - "8051:8051"
+      - "9051:9051"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  post-server:
+    build:
+      context: ./
+      dockerfile: ./build/docker/post/Dockerfile
+    ports:
+      - "50052:50052"
+      - "8052:8052"
+      - "9052:9052"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  comment-server:
+    build:
+      context: ./
+      dockerfile: ./build/docker/comment/Dockerfile
+    ports:
+      - "50053:50053"
+      - "8053:8053"
+      - "9053:9053"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  auth-server:
+    build:
+      context: ./
+      dockerfile: ./build/docker/auth/Dockerfile
+    ports:
+      - "50054:50054"
+      - "8054:8054"
+      - "9054:9054"
+    depends_on:
+      - db
+    networks:
+      - backend
 #
 #  dtm:
 #    image: yedf/dtm
@@ -27,7 +92,7 @@ services:
 #      - backend
 #    restart: always
 
-  dtm:
+  dtm-server:
     image: yedf/dtm
     environment:
       - STORE_DRIVER=postgres
@@ -38,6 +103,8 @@ services:
     ports:
       - '36789:36789'
       - '36790:36790'
+    depends_on:
+      - db
     networks:
       - backend
 
