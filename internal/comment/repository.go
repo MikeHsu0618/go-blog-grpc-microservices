@@ -85,7 +85,7 @@ func (r *repository) ListByPostID(ctx context.Context, postID uint64, offset, li
 	return comments, err
 }
 
-func (r repository) CountByPostID(ctx context.Context, postID uint64) (uint64, error) {
+func (r *repository) CountByPostID(ctx context.Context, postID uint64) (uint64, error) {
 	var count int64
 	err := r.db.Model(&Comment{}).Where("post_id = ?", postID).Count(&count).Error
 	return uint64(count), err
