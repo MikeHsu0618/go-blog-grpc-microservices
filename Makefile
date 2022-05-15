@@ -47,3 +47,11 @@ comment-server:
 .PHONY: blog-server
 blog-server:
 	go run ./cmd/blog/
+
+.PHONY: docker-build
+docker-build:
+	docker build -t blog/blog-server:latest -f ./build/docker/blog/Dockerfile .
+	docker build -t blog/user-server:latest -f ./build/docker/user/Dockerfile .
+	docker build -t blog/auth-server:latest -f ./build/docker/auth/Dockerfile .
+	docker build -t blog/post-server:latest -f ./build/docker/post/Dockerfile .
+	docker build -t blog/comment-server:latest -f ./build/docker/comment/Dockerfile .
