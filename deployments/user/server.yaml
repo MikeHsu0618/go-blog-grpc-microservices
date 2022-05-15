@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-server
+  labels:
+    app: user-server
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: user-server
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: user-server
+        version: v1
+    spec:
+      containers:
+        - name: user-server
+          image: blog/user-server
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50051
+              protocol: TCP
+              name: grpc
+            - containerPort: 9051
+              protocol: TCP
+              name: metrics
+#          readinessProbe:
+#            exec:
+#              command: [ "/grpc-health-probe", "-addr=:50051" ]
+#          livenessProbe:
+#            exec:
+#              command: [ "/grpc-health-probe", "-addr=:50051" ]
+#          lifecycle:
+#            preStop:
+#              exec:
+#                command: [ "sh", "-c", "sleep 10" ]
+          volumeMounts:
+            - mountPath: /configs # 使用 configmap 覆盖默认的配置文件
+              name: configs
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+      volumes:
+        - name: configs
+          configMap:
+            name: blog-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-server
+  labels:
+    app: user-server
+spec:
+  selector:
+    app: user-server
+  ports:
+    - port: 50051
+      targetPort: 50051
+      appProtocol: grpc
+      name: grpc
+    - port: 9051
+      targetPort: 9051
+      appProtocol: http
+      name: metrics

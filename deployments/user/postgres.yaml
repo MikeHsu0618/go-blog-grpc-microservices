@@ -1,0 +1,121 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-db
+  labels:
+    app: user-db
+spec:
+  selector:
+    matchLabels:
+      app: user-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: user-db
+    spec:
+      containers:
+        - name: user-db
+          image: postgres:12.4-alpine
+          env:
+            - name: POSTGRES_USER
+              value: 'postgres'
+            - name: POSTGRES_PASSWORD
+              value: 'postgres'
+            - name: PGDATA
+              value: '/var/lib/postgresql/data/pgdata'
+            - name: POSTGRES_DB
+              value: 'users'
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: user-db
+            - mountPath: /docker-entrypoint-initdb.d
+              name: user-initdb
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "users", "-c", "SELECT 1"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "users", "-c", "SELECT 1"]
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+      volumes:
+        - name: user-db
+          persistentVolumeClaim:
+            claimName: user-db
+        - name: user-initdb
+          configMap:
+            name: user-initdb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user-initdb
+  labels:
+    app: user-db
+data:
+  initdb.sql: |
+    DROP TABLE IF EXISTS users CASCADE;
+    create table users
+    (
+    id         BIGSERIAL PRIMARY KEY,
+    uuid       VARCHAR(36)  NOT NULL UNIQUE,
+    username   VARCHAR(255) NULL,
+    email      VARCHAR(255) NULL,
+    avatar     VARCHAR(255) DEFAULT NULL,
+    password   VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP    NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMP    NULL
+    );
+    
+    CREATE UNIQUE INDEX idx_unq_users_email ON users (email) WHERE trim(email) != '';
+    CREATE UNIQUE INDEX idx_unq_users_username ON users (username) WHERE trim(username) != '';
+    
+    COMMENT
+    ON COLUMN users.username IS '使用者名稱';
+    COMMENT
+    ON COLUMN users.email IS 'Email';
+    COMMENT
+    ON COLUMN users.avatar IS '大頭貼';
+    COMMENT
+    ON COLUMN users.password IS '密碼';
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: user-db
+  labels:
+    app: user-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-db
+  labels:
+    app: user-db
+spec:
+  selector:
+    app: user-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+      appProtocol: postgresql

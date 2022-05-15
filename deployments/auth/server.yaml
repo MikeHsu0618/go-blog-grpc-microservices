@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-server
+  labels:
+    app: auth-server
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-server
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: auth-server
+        version: v1
+    spec:
+      containers:
+        - name: auth-server
+          image: blog/auth-server:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 50054
+              protocol: TCP
+              name: grpc
+            - containerPort: 8054
+              protocol: TCP
+              name: http
+            - containerPort: 9054
+              protocol: TCP
+              name: metrics
+#          readinessProbe:
+#            exec:
+#              command: [ "/grpc-health-probe", "-addr=:50054" ]
+#          livenessProbe:
+#            exec:
+#              command: [ "/grpc-health-probe", "-addr=:50054" ]
+#          lifecycle:
+#            preStop:
+#              exec:
+#                command: [ "sh", "-c", "sleep 10" ]
+          volumeMounts:
+            - mountPath: /configs # 使用 configmap 覆盖默认的配置文件
+              name: configs
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 100m
+              memory: 100Mi
+      volumes:
+        - name: configs
+          configMap:
+            name: blog-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-server
+  labels:
+    app: auth-server
+spec:
+  selector:
+    app: auth-server
+  ports:
+    - port: 50054
+      targetPort: 50054
+      appProtocol: grpc
+      name: grpc
+    - port: 8054
+      targetPort: 8054
+      appProtocol: http
+      name: http
+    - port: 9054
+      targetPort: 9054
+      appProtocol: http
+      name: metrics
