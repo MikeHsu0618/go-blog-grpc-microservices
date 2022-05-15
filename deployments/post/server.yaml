@@ -30,10 +30,10 @@ spec:
               name: metrics
 #          readinessProbe:
 #            exec:
-#              command: [ "/grpc-health-probe", "-addr=:50052" ]
+#              command: [ "/bin/grpc_health_probe", "-addr=:50052" ]
 #          livenessProbe:
 #            exec:
-#              command: [ "/grpc-health-probe", "-addr=:50052" ]
+#              command: [ "/bin/grpc_health_probe", "-addr=:50052" ]
 #          lifecycle:
 #            preStop:
 #              exec:

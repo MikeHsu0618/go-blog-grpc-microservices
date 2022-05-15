@@ -1,3 +1,4 @@
+redeployed-at:=$(shell date +%s)
 
 .PHONY: protoc
 protoc:
@@ -55,3 +56,34 @@ docker-build:
 	docker build -t blog/auth-server:latest -f ./build/docker/auth/Dockerfile .
 	docker build -t blog/post-server:latest -f ./build/docker/post/Dockerfile .
 	docker build -t blog/comment-server:latest -f ./build/docker/comment/Dockerfile .
+
+.PHONY: kube-deploy
+kube-deploy:
+	kubectl apply -f ./deployments/
+	kubectl apply -f ./deployments/dtm/
+	kubectl apply -f ./deployments/blog/
+	kubectl apply -f ./deployments/user/
+	kubectl apply -f ./deployments/post/
+	kubectl apply -f ./deployments/auth/
+	kubectl apply -f ./deployments/comment/
+	kubectl apply -f ./deployments/addons/
+
+.PHONY: kube-delete
+kube-delete:
+	kubectl delete -f ./deployments/
+	kubectl delete -f ./deployments/dtm/
+	kubectl delete -f ./deployments/blog/
+	kubectl delete -f ./deployments/user/
+	kubectl delete -f ./deployments/post/
+	kubectl delete -f ./deployments/auth/
+	kubectl delete -f ./deployments/comment/
+	#kubectl delete -f ./deployments/addons/
+
+.PHONY: kube-redeploy
+kube-redeploy:
+	@echo "redeployed at ${redeployed-at}"
+	kubectl patch deployment blog-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
+	kubectl patch deployment user-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
+	kubectl patch deployment auth-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
+	kubectl patch deployment post-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
+	kubectl patch deployment comment-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
