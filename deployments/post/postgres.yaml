@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-db
+  labels:
+    app: post-db
+spec:
+  selector:
+    matchLabels:
+      app: post-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: post-db
+    spec:
+      containers:
+        - name: post-db
+          image: postgres:12.4-alpine
+          env:
+            - name: POSTGRES_USER
+              value: 'postgres'
+            - name: POSTGRES_PASSWORD
+              value: 'postgres'
+            - name: PGDATA
+              value: '/var/lib/postgresql/data/pgdata'
+            - name: POSTGRES_DB
+              value: 'posts'
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: post-db
+            - mountPath: /docker-entrypoint-initdb.d
+              name: post-initdb
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "posts", "-c", "SELECT 1"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "posts", "-c", "SELECT 1"]
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+      volumes:
+        - name: post-db
+          persistentVolumeClaim:
+            claimName: post-db
+        - name: post-initdb
+          configMap:
+            name: post-initdb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: post-initdb
+  labels:
+    app: post-db
+data:
+  initdb.sql: |
+    DROP TABLE IF EXISTS posts CASCADE;
+    
+    CREATE TABLE posts
+    (
+    id             BIGSERIAL PRIMARY KEY,
+    uuid           VARCHAR(36)  NOT NULL UNIQUE,
+    user_id        NUMERIC      NOT NULL,
+    title          VARCHAR(255) NOT NULL,
+    content        TEXT         NOT NULL,
+    comments_count NUMERIC               DEFAULT 0,
+    created_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    deleted_at     TIMESTAMP    NULL
+    );
+    
+    CREATE INDEX user_id_key ON posts (user_id);
+    
+    COMMENT ON COLUMN posts.title IS '標題';
+    COMMENT ON COLUMN posts.content IS '內容';
+    COMMENT ON COLUMN posts.comments_count IS '評論數';
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: post-db
+  labels:
+    app: post-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post-db
+  labels:
+    app: post-db
+spec:
+  selector:
+    app: post-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+      appProtocol: postgresql

@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comment-db
+  labels:
+    app: comment-db
+spec:
+  selector:
+    matchLabels:
+      app: comment-db
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: comment-db
+    spec:
+      containers:
+        - name: comment-db
+          image: postgres:12.4-alpine
+          env:
+            - name: POSTGRES_USER
+              value: 'postgres'
+            - name: POSTGRES_PASSWORD
+              value: 'postgres'
+            - name: PGDATA
+              value: '/var/lib/postgresql/data/pgdata'
+            - name: POSTGRES_DB
+              value: 'comments'
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: comment-db
+            - mountPath: /docker-entrypoint-initdb.d
+              name: comment-initdb
+          readinessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "comments", "-c", "SELECT 1"]
+            initialDelaySeconds: 15
+            timeoutSeconds: 2
+          livenessProbe:
+            exec:
+              command: ["psql", "-U", "postgres", "-d", "comments", "-c", "SELECT 1"]
+            initialDelaySeconds: 45
+            timeoutSeconds: 2
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+      volumes:
+        - name: comment-db
+          persistentVolumeClaim:
+            claimName: comment-db
+        - name: comment-initdb
+          configMap:
+            name: comment-initdb
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: comment-initdb
+  labels:
+    app: comment-db
+data:
+  initdb.sql: |
+    DROP TABLE IF EXISTS comments CASCADE;
+    
+    create table comments
+    (
+    id         BIGSERIAL PRIMARY KEY,
+    uuid       VARCHAR(36)  NOT NULL UNIQUE,
+    user_id    NUMERIC      NOT NULL,
+    post_id    NUMERIC      NOT NULL,
+    content    TEXT         NOT NULL,
+    created_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at     TIMESTAMP    NOT NULL DEFAULT NOW(),
+    deleted_at     TIMESTAMP    NULL
+    );
+    
+    CREATE INDEX user_id_key ON comments (user_id);
+    CREATE INDEX post_id_key ON comments (post_id);
+    
+    COMMENT ON COLUMN comments.content IS '內容';
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: comment-db
+  labels:
+    app: comment-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: comment-db
+  labels:
+    app: comment-db
+spec:
+  selector:
+    app: comment-db
+  ports:
+    - port: 5432
+      targetPort: 5432
+      appProtocol: postgresql
