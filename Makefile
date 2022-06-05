@@ -77,7 +77,7 @@ kube-delete:
 	kubectl delete -f ./deployments/post/
 	kubectl delete -f ./deployments/auth/
 	kubectl delete -f ./deployments/comment/
-	#kubectl delete -f ./deployments/addons/
+	kubectl delete -f ./deployments/addons/
 
 .PHONY: kube-redeploy
 kube-redeploy:
@@ -87,3 +87,9 @@ kube-redeploy:
 	kubectl patch deployment auth-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
 	kubectl patch deployment post-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
 	kubectl patch deployment comment-server -p '{"spec": {"template": {"metadata": {"annotations": {"redeployed-at": "'${redeployed-at}'" }}}}}'
+
+kube-delete-istio:
+	kubectl delete all --all --namespace=istio-system
+
+kube-delete-ingress:
+	kubectl delete all --all --namespace=ingress-nginx
