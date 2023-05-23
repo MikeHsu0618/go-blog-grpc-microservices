@@ -1,6 +1,6 @@
 # Go Blog Microservices Grpc Demo
 
-`microservices` `gRPC` `kubenetes` `istio`
+`microservices` `gRPC` `kubernetes` `istio`
 
 A Blog Demo using tech stack above.
 
